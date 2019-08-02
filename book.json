@@ -1,0 +1,27 @@
+{
+    "language": "zh-hans",
+    "gitbook": "3.2.3",
+    "plugins": [
+        "-search",
+        "search-pro",
+        "-sharing",
+        "advanced-emoji",
+        "anchor-navigation-ex",
+        "include-codeblock",
+        "ace",
+        "tbfed-pagefooter",
+        "mermaid-gb3",
+        "popup"
+    ],
+    "pluginsConfig": {
+      "include-codeblock": {
+            "template": "ace",
+            "theme": "monokai"
+      },
+      "tbfed-pagefooter": {
+          "copyright":"Copyright &copy Wong 2019",
+          "modify_label": "Last UpdateTime:",
+          "modify_format": "YYYY-MM-DD HH:mm:ss"
+      }
+  }
+}
