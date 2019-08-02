@@ -49,7 +49,7 @@ pipeline {
               sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"mkdir -p ${deployDir}.tmp/\" "
               sh "scp -o StrictHostKeyChecking=no ROOT-opt-notes.tar.gz ${deployNode}:${deployDir}.tmp/"
               sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"tar -C ${deployDir}.tmp/ -zxvf ${deployDir}.tmp/ROOT-opt-notes.tar.gz && mv  ${deployDir}.tmp/_book/*  ${deployDir}.tmp/ && rm -rf ${deployDir}.tmp/_book/ ${deployDir}.tmp/ROOT-opt-notes.tar.gz \""
-              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"mv ${deployDir} ${deployDir}.bak && mv ${deployDir}.tmp ${deployDir}/\" "
+              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm -rf ${deployDir}.bak && mv ${deployDir} ${deployDir}.bak && mv ${deployDir}.tmp ${deployDir}/\" "
             }
           }
         }
