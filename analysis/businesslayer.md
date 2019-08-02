@@ -41,7 +41,7 @@ Set-Cookie:  31-Jul-2019 16:49:52 GMT; HttpOnly
 ```
 
 ## Pinpoint Agent 收集到的数据
-[点击查看 Pinpoint Agent 数据来源](http://qc.can-dao.com:6789/#/transactionList/FRONT-candao-wxa@RESIN/20m/2019-07-29-01-00-00/HWY-119.3.4.13%5E1564135311682%5E390-1564332891760-128)
+[点击查看 Pinpoint Agent 数据来源](/proxy_pass/#/transactionList/FRONT-candao-wxa@RESIN/20m/2019-07-29-01-00-00/HWY-119.3.4.13%5E1564135311682%5E390-1564332891760-128)
 ### 调用链路 Call Tree
 ![](/img/img-5.png)
 
@@ -109,11 +109,11 @@ SpanId 和 ParentSpanId 是 64位长度的整型。可能发生冲突，因为�
 
 在 **HWY-api-gateway** 的 **Call Tree** 中按时间点和 action 找到对应的链路信息
 ### 第一次请求 WxaAction
-[Call Tree](http://qc.can-dao.com:6789/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75130-1564332891646-8)
+[Call Tree](/proxy_pass/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75130-1564332891646-8)
 ![](/img/img-9.png)
 
 ### 第二次请求 WxaAction
-[Call Tree](http://qc.can-dao.com:6789/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75131-1564332891749-4)
+[Call Tree](/proxy_pass/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75131-1564332891749-4)
 ![](/img/img-8.png)
 
 ## 分析
