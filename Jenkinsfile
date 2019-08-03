@@ -46,7 +46,7 @@ pipeline {
             script {
               echo "发布项目"
               sh "cd _book/ && tar -cvzf ROOT-opt-notes.tar.gz * --exclude=\".gitignore\" --exclude=\"Jenkinsfile\" --exclude=\"ROOT-opt-notes.tar.gz\""
-              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm ${deployDir}.tmp/ && mkdir -p ${deployDir}.tmp/\" "
+              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm -rf ${deployDir}.tmp/ && mkdir -p ${deployDir}.tmp/\" "
               sh "scp -o StrictHostKeyChecking=no _book/ROOT-opt-notes.tar.gz ${deployNode}:${deployDir}.tmp/"
               sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"tar -C ${deployDir}.tmp/ -zxvf ${deployDir}.tmp/ROOT-opt-notes.tar.gz && rm -rf ${deployDir}.tmp/ROOT-opt-notes.tar.gz \""
               sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm -rf ${deployDir}.bak && mv ${deployDir} ${deployDir}.bak && mv ${deployDir}.tmp ${deployDir}/\" "
