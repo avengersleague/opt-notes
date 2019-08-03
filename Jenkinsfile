@@ -45,10 +45,10 @@ pipeline {
           steps {
             script {
               echo "发布项目"
-              sh "tar -cvzf ROOT-opt-notes.tar.gz _book/ --exclude=_book/.* --exclude=_book/Jenkinsfile"
-              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"mkdir -p ${deployDir}.tmp/\" "
-              sh "scp -o StrictHostKeyChecking=no ROOT-opt-notes.tar.gz ${deployNode}:${deployDir}.tmp/"
-              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"tar -C ${deployDir}.tmp/ -zxvf ${deployDir}.tmp/ROOT-opt-notes.tar.gz && rm -rf `ls ${deployDir}.tmp/ | grep -v\"/_book\"` && mv  ${deployDir}.tmp/_book/*  ${deployDir}.tmp/ && rm -rf ${deployDir}.tmp/_book/ ${deployDir}.tmp/ROOT-opt-notes.tar.gz \""
+              sh "cd _book/ && tar -cvzf ROOT-opt-notes.tar.gz * --exclude=\".gitignore\" --exclude=\"Jenkinsfile\""
+              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm ${deployDir}.tmp/ && mkdir -p ${deployDir}.tmp/\" "
+              sh "scp -o StrictHostKeyChecking=no _book/ROOT-opt-notes.tar.gz ${deployNode}:${deployDir}.tmp/"
+              sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"tar -C ${deployDir}.tmp/ -zxvf ${deployDir}.tmp/ROOT-opt-notes.tar.gz && rm -rf ${deployDir}.tmp/ROOT-opt-notes.tar.gz \""
               sh "ssh -o StrictHostKeyChecking=no ${deployNode} \"rm -rf ${deployDir}.bak && mv ${deployDir} ${deployDir}.bak && mv ${deployDir}.tmp ${deployDir}/\" "
             }
           }
