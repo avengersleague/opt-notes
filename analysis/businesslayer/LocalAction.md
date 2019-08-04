@@ -43,10 +43,10 @@ Set-Cookie:  31-Jul-2019 16:49:52 GMT; HttpOnly
 ## Pinpoint Agent 收集到的数据
 [点击查看 Pinpoint Agent 数据来源](http://qc.can-dao.com:6787/proxy_pass/#/transactionList/FRONT-candao-wxa@RESIN/20m/2019-07-29-01-00-00/HWY-119.3.4.13%5E1564135311682%5E390-1564332891760-128)
 ### 调用链路 Call Tree
-![](/img/img-5.png)
+![](/img/analysis/businesslayer/LocalAction/img-1.png)
 
 ### 服务调用拓补图 Server Map
-![](/img/img-6.png)
+![](/img/analysis/businesslayer/LocalAction/img-2.png)
 
 通过调用链路以及拓补图可以发现 `candao-wxa` 调用了 1 次微信的 API 以及 2 次的 *192.168.20.75:81* 这个host,
 
@@ -105,16 +105,118 @@ SpanId 和 ParentSpanId 是 64位长度的整型。可能发生冲突，因为�
 
 ## 手动关联 Call Tree 的链路关系
 通过 **candao-wxa** 的 **Call Tree**
-![](/img/img-7.png)
+![](/img/analysis/businesslayer/LocalAction/img-3.png)
 
 在 **HWY-api-gateway** 的 **Call Tree** 中按时间点和 action 找到对应的链路信息
 ### 第一次请求 WxaAction
 [Call Tree](http://qc.can-dao.com:6787/proxy_pass/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75130-1564332891646-8)
-![](/img/img-9.png)
+![](/img/analysis/businesslayer/LocalAction/img-4.png)
 
 ### 第二次请求 WxaAction
 [Call Tree](http://qc.can-dao.com:6787/proxy_pass/#/transactionList/HWY-api-gateway@RESIN/10m/2019-07-29-00-55-00/HWY-10.233.33.4%5E1564316313727%5E75131-1564332891749-4)
-![](/img/img-8.png)
+![](/img/analysis/businesslayer/LocalAction/img-5.png)
 
 ## 分析
 ### 分析第一次请求 WxaAction
+拉取出对应的 **Call Tree** 以及 **Server Map**,如图所示:
+![Call Tree](/img/analysis/businesslayer/LocalAction/img-6.png)
+![Server Map](/img/analysis/businesslayer/LocalAction/img-7.png)
+
+根据数据我们可以得知请求进来调用一次 candao-user 系统以及一次 candao-pay 系统,<br>
+**Call Tree** 中我标了 4 个序号,我们来一一分析:
+- ① 根据 Pinpoint 的结果得知请求调用了 `/WxaAction` 的 *doPost* 方法后第一次调用外部服务为 **candao-user** 的 Dubbo Provider,
+而且调用的是 `IUserService:getUserBySecretKey`,总耗时用了不足 0ms (Exec 指标)。<br>
+结合代码分析是针对 C 端获取用户的 SecretKey,所以我们跳过。
+```java
+// com.candao.gateway.service.ApiManager#setCommonObj
+    private ReqData setCommonObj(ReqData reqData) {
+    		if (reqData instanceof ReqCClientData) {
+    			String secretKey = ((ReqCClientData) reqData).secretKey;
+    			User user = ((IUserService) ServiceLoader.getService("userService")).getUserBySecretKey(secretKey);
+    			reqData.setObj(user);
+    		} else if (reqData instanceof ReqBClientData) {
+    			...
+    		}
+    }
+```
+
+- ② - ③ 进入请求后发起的第二次调用的目标是 **candao-pay** 的 `IPayCApi:getAuth`,总耗时用了 6ms 左右。主要是用于获取授权信息的接口。
+```java
+// com.candao.pay.PayCApi#getAuth
+    @Override
+    public String getAuth(ReqData reqData) {
+        ReqCClientData reqCClientData = (ReqCClientData) reqData;
+        String key = reqCClientData.key;
+        String platformKey = reqCClientData.platformKey;
+        int clientType = reqCClientData.clientType;
+        WxAuth wxAuth = wxAuthService.getAuth(platformKey, key, clientType);
+        RspWxAuth rspWxAuth = null;
+        if (wxAuth != null && wxAuth.status == DataStatus.ENABLE.getValue()) {
+            Logger.info("返回授权配置name = " + wxAuth.name + ", platformKey = " + platformKey + ", key = " + key);
+            rspWxAuth = RspWxAuth.create(wxAuth, clientType);
+        }
+        if (rspWxAuth == null) {
+            // 获取餐道微信配置
+            Logger.info("返回餐道授权platformKey = " + platformKey + ", key = " + key);
+            rspWxAuth = RspWxAuth.defaultAuth(clientType);
+        }
+        return RspData.retSuccess(rspWxAuth);
+    }
+```
+
+- ④ 这里和 redis 进行了 5 次的通讯,前面三次不清楚怎么回事(一般情况下系统启动时理论上 jedis 连接池都会初始化而且代码的确是实现了,而且生成这批数据的时候并没有重启系统,所以不大清楚为什么会重新开了一个新的连接而不是使用连接池的),然后分别调用了 Redis 两次 get 命令,也符合代码中两次获取缓存的 `getWxAuthByCacheKey` 这个方法:
+```java
+// com.candao.pay.service.WxAuthService#getAuth
+    /**
+     * 首先根据商家key查询对应的授权配置,如商家key没有再根据platformKey查询
+     * @param platformKey 平台key
+     * @param key 商家key
+     * @return
+     */
+    @Override
+    public WxAuth getAuth(String platformKey, String key, int clientType) {
+      // 根据平台key+商家key查询,查询到直接返回
+      int type =WxAuth.getType(clientType);
+      if (!StringUtil.isNullOrEmpty(key)) {
+        String cacheTypeKey = type+"_"+key;
+        String cacheKey = wxAuthToKeyCacheKeyType(cacheTypeKey);
+        Integer id = getWxAuthByCacheKey(cacheKey,type, platformKey, key, null);
+        if (id != null && id > 0) {
+          return this.get(id);
+        }
+      }
+      // 根据平台key查询
+      String platformCacheKey = wxAuthToPlatformKeyCacheKey(platformKey);
+      Integer id = getWxAuthByCacheKey(platformCacheKey,type, platformKey, null, null);
+      if (id != null && id > 0) {
+        return this.get(id);
+      }
+      return null;
+    }
+```
+所以,**按照代码中两种维度去获取缓存这个操作已经是不需要优化的了**,假如需要优化的话也只能减少第一个缓存没有命中的情况下不用再去发起第二次查询 redis,可是由于 `getWxAuthByCacheKey` 下底层使用的是 `public static <T> T getDataFromRedisOrDataGeter(String cacheKey, Class<T> clazz, DataGeter<T> dataGeter)` 这个方法查询数据和缓存操作耦合在了一起,改动过于繁杂,所以也无法使用批量命令。
+
+### 分析第二次请求 WxaAction
+拉取出对应的 **Call Tree** 以及 **Server Map**,如图所示:
+![Call Tree](/img/analysis/businesslayer/LocalAction/img-8.png)
+![Server Map](/img/analysis/businesslayer/LocalAction/img-9.png)
+
+根据数据我们可以得知请求进来调用一次 candao-user 系统,<br>
+**Call Tree** 中我标了 3 个序号,我们来一一分析:
+- ① 按照之前的分析,这里是是针对 C 端获取用户的 SecretKey,所以我们跳过。
+
+- ② - ③ 根据调用链路得知调用的是 `IUserCApi:getSecretKeyByOpenId` 这个方法,按照下面的链路结果不需要查阅代码也可以知道是通过缓存去获取 **SecretKey**,所以这个也不需要优化。
+
+## 总结
+![Call Tree](/img/analysis/businesslayer/LocalAction/img-10.png)
+- ### ① 第一次调用 DC 的 `WxaAction`
+  第一次主要是用于获取授权信息的接口,耗时也比较少(案例中耗时为 15 ms,`Gap` 指标为业务逻辑到调用的间隔,使用了 3ms,`Exec`指标为实际调用花费了 12ms)。
+
+- ### ② 调用微信 API
+  需要把 code 换成 openid 的必须渠道,所以没法子,耗时在 97ms 左右,耗时最久的一个操作。
+  ![Timeline](/img/analysis/businesslayer/LocalAction/img-11.png)
+
+- ### ③ 第二次调用 DC 的 `WxaAction`
+  用于获取 **SecretKey** 的接口,耗时也比较少,案例中 6ms。
+
+所以,最后的结果是暂时没有可以优化的方案,毕竟没有得优化则代表做得很好啦。
