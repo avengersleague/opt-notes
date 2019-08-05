@@ -1,0 +1,41 @@
+curl 'https://qc.can-dao.com:7776/SecretAction?_actionName=userInfo&key=e885c1b0a4a3229a' \
+  -w '\n\nhttp: %{http_code}\ndns: %{time_namelookup}s\nredirect: %{time_redirect}s\ntime_connect: %{time_connect}s\ntime_appconnect: %{time_appconnect}s\ntime_pretransfer: %{time_pretransfer}s\ntime_starttransfer: %{time_starttransfer}s\nsize_download: %{size_download}bytes\nspeed_download: %{speed_download}B/s\n----------\ntime_total: %{time_total}s\n\n ' \
+  -i -L -v \
+  -H 'Cookie':'JSESSIONID=13983557-efb1-44c4-8423-873190e348bc'\
+  -X POST -H 'Content-type':'application/json' \
+  -d '{
+  "actionName": "candao.user.getBaseInfo",
+  "content": {}
+}'
+
+curl 'https://test.can-dao.com:7776/SecretAction?_actionName=userInfo&key=e885c1b0a4a3229a' \
+  -w '\n\nhttp: %{http_code}\ndns: %{time_namelookup}s\nredirect: %{time_redirect}s\ntime_connect: %{time_connect}s\ntime_appconnect: %{time_appconnect}s\ntime_pretransfer: %{time_pretransfer}s\ntime_starttransfer: %{time_starttransfer}s\nsize_download: %{size_download}bytes\nspeed_download: %{speed_download}B/s\n----------\ntime_total: %{time_total}s\n\n ' \
+  -i -L -v \
+  -H 'Cookie':'JSESSIONID=13983557-efb1-44c4-8423-873190e348bc'\
+  -X POST -H 'Content-type':'application/json' \
+  -d '{
+  "actionName": "candao.user.getBaseInfo",
+  "content": {}
+}'
+
+curl 'https://test1.can-dao.com:6421/SecretAction?_actionName=userInfo&key=e885c1b0a4a3229a' \
+  -w '\n\nhttp: %{http_code}\ndns: %{time_namelookup}s\nredirect: %{time_redirect}s\ntime_connect: %{time_connect}s\ntime_appconnect: %{time_appconnect}s\ntime_pretransfer: %{time_pretransfer}s\ntime_starttransfer: %{time_starttransfer}s\nsize_download: %{size_download}bytes\nspeed_download: %{speed_download}B/s\n----------\ntime_total: %{time_total}s\n\n ' \
+  -i -L -v \
+  -H 'Cookie':'JSESSIONID=13983557-efb1-44c4-8423-873190e348bc'\
+  -X POST -H 'Content-type':'application/json' \
+  -d '{
+  "actionName": "candao.user.getBaseInfo",
+  "content": {}
+}'
+
+curl 'http://test1.can-dao.com:664/SecretAction?_actionName=userInfo&key=e885c1b0a4a3229a' \
+  -w '\n\nhttp: %{http_code}\ndns: %{time_namelookup}s\nredirect: %{time_redirect}s\ntime_connect: %{time_connect}s\ntime_appconnect: %{time_appconnect}s\ntime_pretransfer: %{time_pretransfer}s\ntime_starttransfer: %{time_starttransfer}s\nsize_download: %{size_download}bytes\nspeed_download: %{speed_download}B/s\n----------\ntime_total: %{time_total}s\n\n ' \
+  -i -L -v \
+  -H 'Cookie':'JSESSIONID=13983557-efb1-44c4-8423-873190e348bc'\
+  -X POST -H 'Content-type':'application/json' \
+  -d '{
+  "actionName": "candao.user.getBaseInfo",
+  "content": {}
+}'
+
+119.3.4.13:6421
